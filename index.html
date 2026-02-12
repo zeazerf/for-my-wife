@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Love ❤️</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #ff4d6d;
+            --bg-gradient: linear-gradient(135deg, #fff0f3 0%, #ffe4e6 100%);
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --text-main: #4a4a4a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden; /* Hide standard scrollbar */
+            color: var(--text-main);
+        }
+
+        /* --- 0. BACKGROUND EFFECTS --- */
+        .fixed-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-gradient);
+            z-index: -2;
+        }
+        
+        /* Floating Hearts (Background) */
+        .hearts-container {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            pointer-events: none; /* Allows you to click through them */
+            z-index: 20000; /* High number to sit ON TOP of the Success Screen */
+        }
+        
+        .heart-float {
+            position: absolute;
+            color: rgba(255, 77, 109, 0.5); /* Made slightly more visible (0.5 opacity) */
+            animation: floatUp 15s linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) scale(0.5); opacity: 0; }
+            10% { opacity: 1; } /* Fade in quickly */
+            90% { opacity: 1; } /* Stay visible */
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        /* --- 1. LANDING OVERLAY (Click to Open) --- */
+        #landing {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 240, 243, 1);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; transition: transform 0.8s ease-in-out, opacity 0.8s;
+        }
+        .enter-btn {
+            padding: 20px 50px; font-size: 2rem;
+            background: var(--primary); color: white;
+            border: none; border-radius: 60px; cursor: pointer;
+            font-family: 'Great Vibes', cursive;
+            box-shadow: 0 10px 30px rgba(255, 77, 109, 0.4);
+            animation: pulse 2s infinite;
+            transition: transform 0.2s;
+        }
+        .enter-btn:hover { transform: scale(1.1); }
+
+        /* --- 2. SCROLL SNAP CONTAINER --- */
+        .scroll-container {
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            display: none; /* Hidden until opened */
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        /* --- SECTIONS (CARDS) --- */
+        section {
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* Animation Classes */
+        .reveal-text {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease-out;
+        }
+        section.active .reveal-text {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- CARD 1: HERO --- */
+        .hero-title {
+            font-family: 'Great Vibes', cursive;
+            font-size: 5rem;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .hero-subtitle {
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .scroll-indicator {
+            position: absolute; bottom: 30px;
+            animation: bounce 2s infinite; opacity: 0.5;
+        }
+
+        /* --- CARD 2: OUR STORY (Grid style from video) --- */
+        .story-grid {
+            display: flex;
+            gap: 30px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .polaroid {
+            background: white;
+            padding: 10px 10px 40px 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transform: rotate(-2deg);
+            transition: transform 0.3s, z-index 0.3s;
+            width: 220px;
+            opacity: 0; /* Hidden for animation */
+        }
+        /* Staggered Animation for Polaroids */
+        section.active .polaroid:nth-child(1) { animation: popIn 0.6s ease forwards 0.2s; }
+        section.active .polaroid:nth-child(2) { animation: popIn 0.6s ease forwards 0.4s; }
+        section.active .polaroid:nth-child(3) { animation: popIn 0.6s ease forwards 0.6s; }
+        
+        .polaroid:hover { transform: scale(1.1) rotate(0deg); z-index: 10; }
+        .polaroid img { width: 100%; border-radius: 2px; }
+        .caption { 
+            font-family: 'Great Vibes', cursive; 
+            text-align: center; 
+            margin-top: 15px; 
+            font-size: 1.5rem; 
+            color: #555; 
+        }
+
+        /* --- CARD 3: LOVE LETTER --- */
+        .envelope-wrapper {
+            position: relative; cursor: pointer;
+            transition: 0.5s;
+        }
+        .envelope {
+            width: 320px; height: 220px;
+            background: #ff8fa3; /* Darker Pink */
+            position: relative; z-index: 2;
+        }
+        .envelope::before { /* Flap */
+            content: ''; position: absolute; top: 0; left: 0;
+            border-left: 160px solid transparent; border-right: 160px solid transparent;
+            border-top: 120px solid #ffb3c1; z-index: 4; transform-origin: top; transition: 0.5s;
+        }
+        .envelope::after { /* Bottom */
+            content: ''; position: absolute; bottom: 0; left: 0;
+            border-left: 160px solid transparent; border-right: 160px solid transparent;
+            border-bottom: 110px solid #ff4d6d; z-index: 3;
+        }
+        .letter {
+            position: absolute; top: 10px; left: 15px;
+            width: 290px; height: 200px;
+            background: white; padding: 20px;
+            z-index: 1; transition: 0.5s; overflow: hidden;
+            font-size: 0.9rem; color: #444; box-shadow: 0 -5px 10px rgba(0,0,0,0.1);
+        }
+        .envelope-wrapper.open .envelope::before { transform: rotateX(180deg); z-index: 0; }
+        .envelope-wrapper.open .letter { transform: translateY(-180px); height: 380px; z-index: 5; }
+
+        /* --- CARD 4: THE QUESTION --- */
+        .question-card {
+            background: white;
+            padding: 50px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(255, 77, 109, 0.15);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+        .buttons {
+            display: flex; justify-content: center; gap: 30px; margin-top: 40px;
+            position: relative; height: 60px;
+        }
+        .btn {
+            padding: 15px 40px; font-size: 1.2rem; border-radius: 50px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+        .yes-btn { background: var(--primary); color: white; box-shadow: 0 5px 20px rgba(255, 77, 109, 0.3); }
+        .no-btn { background: #f0f0f0; color: #333; }
+
+        /* --- SUCCESS OVERLAY --- */
+        #success-msg {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 240, 243, 0.98); z-index: 10000;
+            flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
+        @keyframes popIn { 0% { transform: scale(0) rotate(-5deg); opacity: 0; } 100% { transform: scale(1) rotate(-2deg); opacity: 1; } }
+
+        /* --- MOVING PHOTO STRIP --- */
+.marquee-container {
+    width: 100%;
+    overflow: hidden; /* Hides images that go off screen */
+    margin: 30px 0;   /* Space above and below the strip */
+    position: relative;
+    z-index: 10;      /* Keeps it above the background */
+}
+
+.marquee-track {
+    display: flex;
+    gap: 20px;        /* Space between photos */
+    width: max-content; /* Forces track to be wide enough for all images */
+    animation: scroll 20s linear infinite; /* The moving magic */
+}
+
+.marquee-track:hover {
+    animation-play-state: paused; /* Optional: Stops moving when hovered */
+}
+
+.marquee-img {
+    height: 250px;    /* Fixed height so they look neat */
+    width: auto;      /* Width adjusts automatically */
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    border: 5px solid white; /* Polaroid style border */
+}
+
+@keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); } /* Moves half way (see HTML note) */
+}
+
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+        <!-- <source src="https://cdn.pixabay.com/audio/2022/10/18/audio_31c2730e64.mp3" type="audio/mpeg"> -->
+        <source src="Taylor Swift - Enchanted.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="fixed-bg"></div>
+    <div class="hearts-container" id="heartsContainer"></div>
+
+    <div id="landing">
+        <button class="enter-btn" onclick="startJourney()">Click to Open ❤️</button>
+    </div>
+
+    <main class="scroll-container" id="mainContent">
+        
+        <section id="s1">
+            <div class="reveal-text">
+                <h1 class="hero-title">Hey Beautiful...</h1>
+                <p class="hero-subtitle">I made this corner of the internet just for you.</p>
+            </div>
+            <div class="scroll-indicator">↓ Scroll Down</div>
+        </section>
+
+        <section id="s2">
+            <h2 class="hero-title reveal-text" style="font-size: 3.5rem;">Our Story</h2>
+            <div class="story-grid">
+                <div class="polaroid">
+                    <img src="1.jpg" alt="Memory">
+                    <div class="caption">The Beginning</div>
+                </div>
+                <div class="polaroid">
+                    <img src="2.jpg" alt="Memory">
+                    <div class="caption">Adventures</div>
+                </div>
+                <div class="polaroid">
+                    <img src="3.jpg" alt="Memory">
+                    <div class="caption">Us Forever</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="s3">
+            <h2 class="hero-title reveal-text" style="font-size: 3rem; margin-bottom: 40px;">A Note for You</h2>
+            <div class="envelope-wrapper" id="envelope">
+                <div class="envelope"></div>
+                <div class="letter">
+                    <p id="typewriter-text"></p>
+                </div>
+            </div>
+            <p class="reveal-text" style="margin-top: 20px; opacity: 0.6;">(Tap the envelope)</p>
+        </section>
+
+        <section id="s4">
+            <div class="question-card reveal-text">
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3R6eW50ZWF4Z2ZlOG94b2Z6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/cLS1cfxvGOPVpf9g3y/giphy.gif" style="width: 150px; margin-bottom: 20px;">
+                <h1 style="font-family: 'Great Vibes', cursive; font-size: 3.5rem; color: var(--primary);">Will you be my Valentine?</h1>
+                <div class="buttons">
+                    <button class="btn yes-btn" onclick="sheSaidYes()">YES!</button>
+                    <button class="btn no-btn" id="noBtn" onmouseover="moveButton()">NO</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="success-msg">
+    <h1 style="font-size: 3.5rem; font-family: 'Great Vibes', cursive; color: var(--primary);">Yay! I Love You! ❤️</h1>
+    
+    <div class="marquee-container">
+        <div class="marquee-track">
+            
+            <img src="1.jpg" class="marquee-img">
+            <img src="2.jpg" class="marquee-img">
+            <img src="3.jpg" class="marquee-img">
+            <img src="4.jpg" class="marquee-img">
+            <img src="5.jpg" class="marquee-img">
+            <img src="6.jpg" class="marquee-img">
+            <img src="7.jpg" class="marquee-img">
+            <img src="8.jpg" class="marquee-img">
+            <img src="9.jpg" class="marquee-img">
+            <img src="10.jpg" class="marquee-img">
+            <img src="11.jpg" class="marquee-img">
+            <img src="12.jpg" class="marquee-img">
+            <img src="13.jpg" class="marquee-img">
+            <img src="14.jpg" class="marquee-img">
+            <img src="15.jpg" class="marquee-img">
+            <img src="16.jpg" class="marquee-img">
+            <img src="17.jpg" class="marquee-img">
+            <img src="18.jpg" class="marquee-img">
+            
+        </div>
+    </div>
+    <p style="margin-top: 20px; font-size: 1.2rem; z-index: 20;">(You're the best thing that ever happened to me)</p>
+                <img src="https://media.giphy.com/media/T86i6yDyOYz7J6dPhf/giphy.gif" style="width: 150px; margin-bottom: 20px;">
+
+</div>
+
+    <script>
+        // --- 1. SETUP HEARTS ---
+        const heartsContainer = document.getElementById('heartsContainer');
+        for(let i=0; i<25; i++) {
+            const heart = document.createElement('div');
+            heart.classList.add('heart-float');
+            heart.innerHTML = '❤️';
+            heart.style.left = Math.random() * 100 + '%';
+            heart.style.animationDuration = (Math.random() * 5 + 8) + 's';
+            heart.style.fontSize = (Math.random() * 20 + 10) + 'px';
+            heartsContainer.appendChild(heart);
+        }
+
+        // --- 2. START JOURNEY ---
+        function startJourney() {
+            const landing = document.getElementById('landing');
+            const main = document.getElementById('mainContent');
+            const audio = document.getElementById('bgMusic');
+
+            // Slide up landing like a curtain
+            landing.style.transform = 'translateY(-100%)';
+            
+            setTimeout(() => {
+                main.style.display = 'block';
+                // Trigger reflow
+                void main.offsetWidth;
+                main.style.opacity = '1';
+                audio.play();
+                
+                // Initialize Observer after visible
+                initObserver();
+            }, 500);
+        }
+
+        // --- 3. SCROLL ANIMATIONS (INTERSECTION OBSERVER) ---
+        function initObserver() {
+            const options = { threshold: 0.5 };
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, options);
+
+            document.querySelectorAll('section').forEach(section => {
+                observer.observe(section);
+            });
+        }
+
+        // --- 4. ENVELOPE LOGIC ---
+        const envelope = document.getElementById('envelope');
+        const textDisplay = document.getElementById('typewriter-text');
+        const message = "Hey Love, \n\nI don't say it enough, but you are my everything. \n\nThank you for your patience, your kindness, and your love. I promise to always try to make you as happy as you make me. \n\nI love you so much.\n\nLove,\n Yours Forever ❤️";
+        let isOpened = false;
+
+        envelope.addEventListener('click', () => {
+            if(!isOpened) {
+                envelope.classList.add('open');
+                isOpened = true;
+                let i = 0;
+                const type = setInterval(() => {
+                    if (i < message.length) {
+                        textDisplay.innerHTML += message.charAt(i) === '\n' ? '<br>' : message.charAt(i);
+                        i++;
+                    } else clearInterval(type);
+                }, 40);
+            }
+        });
+
+        // --- 5. MOVING BUTTON ---
+        function moveButton() {
+            const btn = document.getElementById('noBtn');
+            const x = Math.random() * 600 - 200; // Move relative
+            const y = Math.random() * 600 - 300;
+            btn.style.transform = `translate(${x}px, ${y}px)`;
+        }
+
+        // --- 6. SUCCESS ---
+        function sheSaidYes() {
+            confetti({
+                particleCount: 150, spread: 70, origin: { y: 0.6 }
+            });
+            setTimeout(() => {
+                document.getElementById('success-msg').style.display = 'flex';
+            }, 500);
+        }
+    </script>
+</body>
+</html>
